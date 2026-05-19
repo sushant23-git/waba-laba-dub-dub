@@ -3,410 +3,336 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Control System Practicals</title>
-
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<title>MATLAB Practical Codes</title>
 
 <style>
 body{
-margin:0;
 font-family:Arial,sans-serif;
-display:flex;
 background:#121212;
 color:white;
-}
-
-.sidebar{
-width:250px;
-height:100vh;
-background:#1f1f1f;
+margin:0;
 padding:20px;
-overflow-y:auto;
 }
 
-.sidebar h2{
+h1{
 text-align:center;
 color:#00d9ff;
-}
-
-.sidebar a{
-display:block;
-padding:10px;
-margin:10px 0;
-text-decoration:none;
-background:#333;
-color:white;
-border-radius:5px;
-}
-
-.sidebar a:hover{
-background:#00d9ff;
-color:black;
-}
-
-.content{
-padding:20px;
-flex:1;
-overflow-y:auto;
-height:100vh;
+margin-bottom:30px;
 }
 
 .card{
 background:#1e1e1e;
 padding:20px;
-margin-bottom:30px;
-border-radius:10px;
+margin-bottom:25px;
+border-radius:15px;
+box-shadow:0 0 10px rgba(0,255,255,0.3);
+}
+
+h2{
+color:#00ff95;
 }
 
 button{
-padding:8px 15px;
+padding:10px 20px;
 border:none;
+border-radius:8px;
 background:#00d9ff;
-border-radius:5px;
+font-weight:bold;
 cursor:pointer;
 margin-bottom:10px;
 }
 
+button:hover{
+background:#00b3d1;
+}
+
 pre{
+background:#000;
+padding:15px;
 border-radius:10px;
+overflow:auto;
+white-space:pre-wrap;
+color:#00ff00;
 }
 </style>
-</head>
 
+</head>
 <body>
 
-<div class="sidebar">
-<h2>Control Practicals</h2>
+<h1>MATLAB Practical Codes</h1>
 
-<a href="#p1">Prac 1</a>
-<a href="#p2">Prac 2</a>
-<a href="#p3">Prac 3</a>
-<a href="#p4">Prac 4</a>
-<a href="#p5">Prac 5</a>
-<a href="#p6">Prac 6</a>
-<a href="#p7">Prac 7</a>
-<a href="#p8">Prac 8</a>
+<div id="container"></div>
 
-</div>
+<script>
 
-<div class="content">
+const practicals=[
 
-<div class="card" id="p1">
-<h2>Practical 1: Transfer Functions</h2>
+{
+title:"Prac 1: Transfer Function",
+code:`clc; clear; close all; s=tf('s');
 
-<button onclick="copyCode('code1')">Copy</button>
+disp('--- Individual Transfer Functions ---'); 
+G1 = 1/(s+1)
+G2 = 2/(s+2)
 
-<pre><code id="code1" class="language-matlab">
+disp('--- Overall Transfer Function (Series) ---'); 
+series(G1,G2)
 
-clc;
-clear;
-close all;
+disp('--- Overall Transfer Function (Parallel) ---'); 
+parallel(G1,G2)
 
-s=tf('s');
+disp('--- Overall Transfer Function (Feedback) ---'); 
+feedback(G1,G2)`
+},
 
-disp('Individual Transfer Functions');
+{
+title:"Prac 2: Step Response",
+code:`clc; clear; close all; w=5; z=0.5;
+sys=tf(w^2,[1 2*z*w w^2]);
 
-G1=1/(s+1)
-G2=2/(s+2)
-
-disp('Series Connection')
-
-G_series=series(G1,G2)
-
-disp('Parallel Connection')
-
-G_parallel=parallel(G1,G2)
-
-disp('Feedback Connection')
-
-G_feedback=feedback(G1,G2)
-
-</code></pre>
-</div>
-
-
-
-<div class="card" id="p2">
-<h2>Practical 2: Step Response</h2>
-
-<button onclick="copyCode('code2')">Copy</button>
-
-<pre><code id="code2" class="language-matlab">
-
-clc;
-clear;
-close all;
-
-wn=5;
-zeta=0.5;
-
-sys=tf(wn^2,[1 2*zeta*wn wn^2])
+disp('Transfer Function:');
+sys
 
 [y,t]=step(sys);
 
-figure
-plot(t,y,'LineWidth',3)
+figure;
+plot(t,y,'k','LineWidth',3);
+grid on;
 
-grid on
+title('Unit Step Response');
+xlabel('Time');
+ylabel('Amplitude');
 
-title('Unit Step Response')
-xlabel('Time')
-ylabel('Amplitude')
+i=stepinfo(sys);
 
-info=stepinfo(sys)
+disp('--- Unit Step Response Parameters ---');
 
-disp('Rise Time')
-disp(info.RiseTime)
+fprintf('Rise Time = %.4f sec\\n',i.RiseTime);
+fprintf('Peak Time = %.4f sec\\n',i.PeakTime);
+fprintf('Settling Time = %.4f sec\\n',i.SettlingTime);
+fprintf('Overshoot = %.2f %%\\n',i.Overshoot);`
+},
 
-disp('Peak Time')
-disp(info.PeakTime)
+{
+title:"Prac 3: Steady State Errors",
+code:`clc; clear; close all;
 
-disp('Settling Time')
-disp(info.SettlingTime)
+syms s;
+G_s=10/(s*(s+2));
 
-disp('Overshoot')
-disp(info.Overshoot)
-
-</code></pre>
-</div>
-
-
-
-
-<div class="card" id="p3">
-<h2>Practical 3: Steady State Error</h2>
-
-<button onclick="copyCode('code3')">Copy</button>
-
-<pre><code id="code3" class="language-matlab">
-
-clc
-clear
-close all
+disp('Symbolic TF:');
+pretty(G_s);
 
 s=tf('s');
+G=10/(s*(s+2));
 
-G=10/(s*(s+2))
+kp=dcgain(G);
+kv=dcgain(s*G);
+ka=dcgain(s^2*G);
 
-kp=dcgain(G)
+fprintf('\\nSTEADY STATE ANALYSIS\\n\\n');
 
-kv=dcgain(s*G)
+fprintf('Position error constant=%g\\n',kp);
+fprintf('Velocity error constant=%g\\n',kv);
+fprintf('Acceleration error constant=%g\\n\\n',ka);
 
-ka=dcgain((s^2)*G)
+fprintf('Unit Step error=%g\\n',1/(1+kp));
+fprintf('Ramp error=%g\\n',1/kv);
+fprintf('Parabolic error=%g\\n',1/ka);`
+},
 
-ess_step=1/(1+kp)
+{
+title:"Prac 4: Parameter Variation",
+code:`clc; clear; close all;
 
-ess_ramp=1/kv
+w=5;
+z=0.5;
 
-ess_parabolic=1/ka
+figure;
+hold on;
 
-disp(kp)
-disp(kv)
-disp(ka)
-
-disp(ess_step)
-disp(ess_ramp)
-disp(ess_parabolic)
-
-</code></pre>
-</div>
-
-
-
-
-<div class="card" id="p4">
-<h2>Practical 4: Parameter Variation</h2>
-
-<button onclick="copyCode('code4')">Copy</button>
-
-<pre><code id="code4" class="language-matlab">
-
-clc
-clear
-close all
-
-w=5
-z=0.5
-
-figure
-hold on
-
-K=[1 5 10]
-
-for i=1:length(K)
-
-sys=tf(K(i)*w^2,[1 2*z*w K(i)*w^2])
-
-step(sys)
-
+for K=[1 5 10]
+step(tf(K*w^2,[1 2*z*w K*w^2]));
 end
 
-legend('1','5','10')
+legend('1','5','10');
 
-</code></pre>
+figure;
+hold on;
+
+for Z=[0.2 0.5 0.8]
+step(tf(w^2,[1 2*Z*w w^2]));
+end
+
+legend('0.2','0.5','0.8');
+
+figure;
+hold on;
+
+for W=[2 5 8]
+step(tf(W^2,[1 2*z*W W^2]));
+end
+
+legend('2','5','8');`
+},
+
+{
+title:"Prac 5: Root Locus",
+code:`clc; clear; close all;
+
+G=tf(1,[1 7 10 0]);
+
+figure;
+rlocus(G);
+grid on;
+
+title('Root Locus');
+
+disp('Click plot');
+
+[K,p]=rlocfind(G);
+
+disp('Gain K');
+disp(K);
+
+disp('Poles');
+disp(p);
+
+T=feedback(K*G,1);
+
+figure;
+step(T);
+
+grid on;
+
+title('Step Response');
+
+disp(stepinfo(T));`
+},
+
+{
+title:"Prac 6: Lead Compensation",
+code:`clc; clear; close all;
+
+G=tf(10,[1 1 0]);
+
+Gc=0.9*tf([1 1],[1 3]);
+
+T1=feedback(G,1);
+
+T2=feedback(series(Gc,G),1);
+
+figure;
+
+step(T1,'r',T2,'b');
+
+grid on;
+
+legend('Uncompensated','Lead Compensated');
+
+title('Step Response Comparison');`
+},
+
+{
+title:"Prac 7: Bode Plot",
+code:`clc; clear; close all;
+
+G=tf(100,[1 22 40 0]);
+
+figure;
+
+bode(G);
+
+grid on;
+
+title('Bode Plot');
+
+[GM,PM,Wcg,Wcp]=margin(G);
+
+disp('Gain Margin');
+disp(GM);
+
+disp('Phase Margin');
+disp(PM);
+
+disp('Gain Crossover');
+disp(Wcg);
+
+disp('Phase Crossover');
+disp(Wcp);`
+},
+
+{
+title:"Prac 8: State Space",
+code:`clc; clear; close all;
+
+n=[1 3];
+d=[1 5 6];
+
+G=tf(n,d);
+
+[A,B,C,D]=tf2ss(n,d);
+
+sys=ss(A,B,C,D);
+
+[n2,d2]=ss2tf(A,B,C,D);
+
+G2=tf(n2,d2);
+
+disp('Original TF');
+G
+
+disp('State Space');
+sys
+
+disp('Converted TF');
+G2
+
+figure;
+
+step(G,'r',G2,'b--');
+
+grid on;
+
+legend('Original','Converted');`
+}
+
+];
+
+let html="";
+
+practicals.forEach((p,index)=>{
+
+html+=`
+<div class="card">
+
+<h2>${p.title}</h2>
+
+<button onclick="copyCode(${index})">
+Copy Code
+</button>
+
+<pre id="code${index}">
+${p.code}
+</pre>
+
 </div>
+`;
+});
 
+document.getElementById("container").innerHTML=html;
 
+function copyCode(index){
 
-
-<div class="card" id="p5">
-<h2>Practical 5: Root Locus</h2>
-
-<button onclick="copyCode('code5')">Copy</button>
-
-<pre><code id="code5" class="language-matlab">
-
-clc
-clear
-close all
-
-G=tf(1,[1 7 10 0])
-
-figure
-rlocus(G)
-
-grid on
-
-title('Root Locus')
-
-[K,poles]=rlocfind(G)
-
-T=feedback(K*G,1)
-
-figure
-
-step(T)
-
-grid on
-
-stepinfo(T)
-
-</code></pre>
-</div>
-
-
-
-
-<div class="card" id="p6">
-<h2>Practical 6: Lead Compensation</h2>
-
-<button onclick="copyCode('code6')">Copy</button>
-
-<pre><code id="code6" class="language-matlab">
-
-clc
-clear
-close all
-
-G=tf(10,[1 1 0])
-
-Gc=0.9*tf([1 1],[1 3])
-
-T1=feedback(G,1)
-
-T2=feedback(series(Gc,G),1)
-
-figure
-
-step(T1,'r',T2,'b')
-
-legend('Without Compensation','Lead Compensation')
-
-grid on
-
-</code></pre>
-</div>
-
-
-
-
-<div class="card" id="p7">
-<h2>Practical 7: Bode Plot</h2>
-
-<button onclick="copyCode('code7')">Copy</button>
-
-<pre><code id="code7" class="language-matlab">
-
-clc
-clear
-close all
-
-G=tf(100,[1 22 40 0])
-
-figure
-
-bode(G)
-
-grid on
-
-[GM,PM,Wcg,Wcp]=margin(G)
-
-disp(GM)
-
-disp(PM)
-
-disp(Wcg)
-
-disp(Wcp)
-
-</code></pre>
-</div>
-
-
-
-
-<div class="card" id="p8">
-<h2>Practical 8: State Space</h2>
-
-<button onclick="copyCode('code8')">Copy</button>
-
-<pre><code id="code8" class="language-matlab">
-
-clc
-clear
-close all
-
-num=[1 3]
-
-den=[1 5 6]
-
-G=tf(num,den)
-
-[A,B,C,D]=tf2ss(num,den)
-
-sys=ss(A,B,C,D)
-
-[num2,den2]=ss2tf(A,B,C,D)
-
-G2=tf(num2,den2)
-
-figure
-
-step(G,'r',G2,'b')
-
-legend('Original','Converted')
-
-grid on
-
-</code></pre>
-</div>
-
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-
-<script>
-hljs.highlightAll();
-
-function copyCode(id){
-
-let text=document.getElementById(id).innerText;
+let text=document.getElementById(
+"code"+index
+).innerText;
 
 navigator.clipboard.writeText(text);
 
-alert("Copied");
+alert("Code copied!");
 }
+
 </script>
 
 </body>
